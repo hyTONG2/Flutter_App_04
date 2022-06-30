@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/gestures.dart';
 
 void main() => runApp(MyApp());
 
@@ -45,52 +46,55 @@ class _MyHomeContentState extends State<MyHomeContent> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        _Drag(), //拖动滑动手势测试
+        _GestureRecognizer(), //点击文本变色测试
       ],
       //),
     );
   }
 }
 
-//拖动滑动手势测试
-class _Drag extends StatefulWidget {
+class _GestureRecognizer extends StatefulWidget {
+  const _GestureRecognizer({Key? key}) : super(key: key);
+
   @override
-  _DragState createState() => _DragState();
+  _GestureRecognizerState createState() => _GestureRecognizerState();
 }
 
-class _DragState extends State<_Drag> with SingleTickerProviderStateMixin {
-  double _top = 0.0; //距顶部的偏移
-  double _left = 0.0; //距左边的偏移
+class _GestureRecognizerState extends State<_GestureRecognizer> {
+  TapGestureRecognizer _tapGestureRecognizer = TapGestureRecognizer();
+  bool _toggle = false; //变色开关
+
+  @override
+  void dispose() {
+    //用到GestureRecognizer的话一定要调用其dispose方法释放资源
+    _tapGestureRecognizer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        Positioned(
-          top: _top,
-          left: _left,
-          child: GestureDetector(
-            child: CircleAvatar(child: Text("A")),
-            //手指按下时会触发此回调
-            onPanDown: (DragDownDetails e) {
-              //打印手指按下的位置(相对于屏幕)
-              print("用户手指按下：${e.globalPosition}");
-            },
-            //手指滑动时会触发此回调
-            onPanUpdate: (DragUpdateDetails e) {
-              //用户手指滑动时，更新偏移，重新构建
-              setState(() {
-                _left += e.delta.dx;
-                _top += e.delta.dy;
-              });
-            },
-            onPanEnd: (DragEndDetails e) {
-              //打印滑动结束时在x、y轴上的速度
-              print(e.velocity);
-            },
-          ),
-        )
-      ],
+    return Center(
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: "你好世界"),
+            TextSpan(
+              text: "点我变色",
+              style: TextStyle(
+                fontSize: 30.0,
+                color: _toggle ? Colors.blue : Colors.red,
+              ),
+              recognizer: _tapGestureRecognizer
+                ..onTap = () {
+                  setState(() {
+                    _toggle = !_toggle;
+                  });
+                },
+            ),
+            TextSpan(text: "你好世界"),
+          ],
+        ),
+      ),
     );
   }
 }
